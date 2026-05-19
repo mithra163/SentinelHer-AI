@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AuraShield AI - Women Safety Assistant API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: chat
+    description: AI chat operations
+  - name: safety
+    description: Safety analysis operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,84 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /chat:
+    post:
+      operationId: sendMessage
+      tags: [chat]
+      summary: Send a message to AuraShield AI
+      description: Send a user message and receive AI response with safety analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: AI response with safety analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+
+  /chat/history:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get chat history for a user
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chat history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatHistory"
+
+  /safety/status:
+    get:
+      operationId: getSafetyStatus
+      tags: [safety]
+      summary: Get current safety status and memory for a user
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Safety status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafetyStatus"
+
+  /sos:
+    post:
+      operationId: triggerSos
+      tags: [safety]
+      summary: Trigger SOS emergency alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SosInput"
+      responses:
+        "200":
+          description: SOS triggered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SosResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +116,99 @@ components:
       required:
         - status
 
+    ChatInput:
+      type: object
+      required: [message, username]
+      properties:
+        message:
+          type: string
+          description: User message
+        username:
+          type: string
+          description: Username for memory context
+
+    ChatResponse:
+      type: object
+      required: [reply, emergency, risk_level, model]
+      properties:
+        reply:
+          type: string
+          description: AI response text
+        emergency:
+          type: boolean
+          description: Whether emergency was detected
+        risk_level:
+          type: string
+          enum: [SAFE, MODERATE, HIGH RISK]
+          description: Safety risk classification
+        model:
+          type: string
+          description: AI model used
+        memory:
+          type: object
+          description: User memory context
+          additionalProperties: true
+
+    ChatHistory:
+      type: object
+      required: [username, messages]
+      properties:
+        username:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+
+    ChatMessage:
+      type: object
+      required: [role, content, timestamp]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+        risk_level:
+          type: ["string", "null"]
+        emergency:
+          type: ["boolean", "null"]
+
+    SafetyStatus:
+      type: object
+      required: [username, risk_level, emergency_count]
+      properties:
+        username:
+          type: string
+        risk_level:
+          type: string
+        emergency_count:
+          type: integer
+        unsafe_locations:
+          type: array
+          items:
+            type: string
+        last_active:
+          type: ["string", "null"]
+
+    SosInput:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string
+        location:
+          type: ["string", "null"]
+
+    SosResponse:
+      type: object
+      required: [success, message, reply]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        reply:
+          type: string

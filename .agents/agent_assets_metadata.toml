@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "8YC5ylnK2M2YoY2ghxp64"
+uri = "file://artifacts/aurashield/public/login-bg.png"
+type = "image"
+title = "login background image"

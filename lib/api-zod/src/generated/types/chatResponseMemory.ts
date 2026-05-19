@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+/**
+ * User memory context
+ */
+export type ChatResponseMemory = { [key: string]: unknown };

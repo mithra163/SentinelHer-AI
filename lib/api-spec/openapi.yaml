@@ -106,6 +106,66 @@ paths:
               schema:
                 $ref: "#/components/schemas/SosResponse"
 
+  /contacts:
+    get:
+      operationId: getContacts
+      tags: [safety]
+      summary: Get emergency contacts for a user
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emergency contacts list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactsResponse"
+    post:
+      operationId: addContact
+      tags: [safety]
+      summary: Add an emergency contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddContactBody"
+      responses:
+        "200":
+          description: Contact added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactsResponse"
+
+  /contacts/{index}:
+    delete:
+      operationId: deleteContact
+      tags: [safety]
+      summary: Delete an emergency contact by index
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Contact deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactsResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -211,4 +271,43 @@ components:
         message:
           type: string
         reply:
+          type: string
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmergencyContact"
+
+    EmergencyContact:
+      type: object
+      required: [name, phone]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        relation:
+          type: string
+
+    ContactsResponse:
+      type: object
+      required: [username, contacts]
+      properties:
+        username:
+          type: string
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmergencyContact"
+
+    AddContactBody:
+      type: object
+      required: [username, name, phone]
+      properties:
+        username:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        relation:
           type: string

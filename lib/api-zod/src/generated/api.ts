@@ -81,7 +81,70 @@ export const TriggerSosBody = zod.object({
 export const TriggerSosResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "reply": zod.string()
+  "reply": zod.string(),
+  "contacts": zod.array(zod.object({
+  "name": zod.string(),
+  "phone": zod.string(),
+  "relation": zod.string().optional()
+})).optional()
+})
+
+
+/**
+ * @summary Get emergency contacts for a user
+ */
+export const GetContactsQueryParams = zod.object({
+  "username": zod.coerce.string()
+})
+
+export const GetContactsResponse = zod.object({
+  "username": zod.string(),
+  "contacts": zod.array(zod.object({
+  "name": zod.string(),
+  "phone": zod.string(),
+  "relation": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Add an emergency contact
+ */
+export const AddContactBody = zod.object({
+  "username": zod.string(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "relation": zod.string().optional()
+})
+
+export const AddContactResponse = zod.object({
+  "username": zod.string(),
+  "contacts": zod.array(zod.object({
+  "name": zod.string(),
+  "phone": zod.string(),
+  "relation": zod.string().optional()
+}))
+})
+
+
+/**
+ * @summary Delete an emergency contact by index
+ */
+export const DeleteContactParams = zod.object({
+  "index": zod.coerce.number()
+})
+
+export const DeleteContactQueryParams = zod.object({
+  "username": zod.coerce.string()
+})
+
+export const DeleteContactResponse = zod.object({
+  "username": zod.string(),
+  "contacts": zod.array(zod.object({
+  "name": zod.string(),
+  "phone": zod.string(),
+  "relation": zod.string().optional()
+}))
 })
 
 

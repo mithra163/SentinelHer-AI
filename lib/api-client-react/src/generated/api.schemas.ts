@@ -84,10 +84,29 @@ export interface SosInput {
   location?: string | null;
 }
 
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+  relation?: string;
+}
+
 export interface SosResponse {
   success: boolean;
   message: string;
   reply: string;
+  contacts?: EmergencyContact[];
+}
+
+export interface ContactsResponse {
+  username: string;
+  contacts: EmergencyContact[];
+}
+
+export interface AddContactBody {
+  username: string;
+  name: string;
+  phone: string;
+  relation?: string;
 }
 
 export type GetChatHistoryParams = {
@@ -95,6 +114,14 @@ username: string;
 };
 
 export type GetSafetyStatusParams = {
+username: string;
+};
+
+export type GetContactsParams = {
+username: string;
+};
+
+export type DeleteContactParams = {
 username: string;
 };
 

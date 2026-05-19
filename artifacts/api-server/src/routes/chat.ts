@@ -4,6 +4,10 @@ import {
   GetChatHistoryQueryParams,
   TriggerSosBody,
   GetSafetyStatusQueryParams,
+  AddContactBody,
+  GetContactsQueryParams,
+  DeleteContactQueryParams,
+  DeleteContactParams,
 } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 
@@ -37,6 +41,12 @@ interface ChatMessage {
   emergency?: boolean | null;
 }
 
+interface EmergencyContact {
+  name: string;
+  phone: string;
+  relation: string;
+}
+
 interface UserMemory {
   unsafeLocations: string[];
   travelPatterns: string[];
@@ -44,6 +54,7 @@ interface UserMemory {
   lastActive: string | null;
   emergencyCount: number;
   currentRiskLevel: RiskLevel;
+  emergencyContacts: EmergencyContact[];
 }
 
 const userMemories: Map<string, UserMemory> = new Map();
@@ -58,6 +69,7 @@ function getOrCreateMemory(username: string): UserMemory {
       lastActive: null,
       emergencyCount: 0,
       currentRiskLevel: "SAFE",
+      emergencyContacts: [],
     });
   }
   return userMemories.get(username)!;
@@ -313,7 +325,59 @@ router.post("/sos", async (req, res) => {
     success: true,
     message: "SOS alert activated. Emergency protocol engaged.",
     reply,
+    contacts: memory.emergencyContacts,
   });
+});
+
+router.get("/contacts", async (req, res) => {
+  const parseResult = GetContactsQueryParams.safeParse(req.query);
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Missing username" });
+    return;
+  }
+  const { username } = parseResult.data;
+  const memory = getOrCreateMemory(username);
+  res.json({ username, contacts: memory.emergencyContacts });
+});
+
+router.post("/contacts", async (req, res) => {
+  const parseResult = AddContactBody.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: "Invalid contact data" });
+    return;
+  }
+  const { username, name, phone, relation } = parseResult.data;
+  const memory = getOrCreateMemory(username);
+
+  if (memory.emergencyContacts.length >= 3) {
+    res.status(400).json({ error: "Maximum 3 emergency contacts allowed" });
+    return;
+  }
+
+  memory.emergencyContacts.push({ name, phone, relation: relation ?? "Contact" });
+  res.json({ username, contacts: memory.emergencyContacts });
+});
+
+router.delete("/contacts/:index", async (req, res) => {
+  const paramsResult = DeleteContactParams.safeParse(req.params);
+  const queryResult = DeleteContactQueryParams.safeParse(req.query);
+
+  if (!paramsResult.success || !queryResult.success) {
+    res.status(400).json({ error: "Invalid request" });
+    return;
+  }
+
+  const { index } = paramsResult.data;
+  const { username } = queryResult.data;
+  const memory = getOrCreateMemory(username);
+
+  if (index < 0 || index >= memory.emergencyContacts.length) {
+    res.status(404).json({ error: "Contact not found" });
+    return;
+  }
+
+  memory.emergencyContacts.splice(index, 1);
+  res.json({ username, contacts: memory.emergencyContacts });
 });
 
 function buildSystemPrompt(
